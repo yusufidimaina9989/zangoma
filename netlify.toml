@@ -5,6 +5,12 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Netlify's secrets scanner flags ANY environment-variable value that also
+  # appears in a repo/build file. SUPABASE_URL and the publishable/anon key are
+  # intentionally public (they ship to the browser in public/env.js), so they
+  # must be exempt or the build fails. The SERVICE ROLE key stays scanned.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,SUPABASE_ANON_KEY"
+  SECRETS_SCAN_OMIT_PATHS = "public/env.js,dist/frontend/browser/env.js"
 
 [dev]
   command = "npm start"
