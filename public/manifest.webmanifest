@@ -1,0 +1,19 @@
+{
+  "name": "Livestock Market Registry",
+  "short_name": "LVM Registry",
+  "description": "Register livestock transactions, capture identification and resolve disputes.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f0e4",
+  "theme_color": "#174b38",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

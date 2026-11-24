@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#174b38"/>
+  <path d="M96 328c30-64 84-96 150-96 44 0 82 14 116 44" fill="none" stroke="#f5f0e4" stroke-width="26" stroke-linecap="round"/>
+  <path d="M300 214l20-58 44 40" fill="none" stroke="#d6b25e" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="352" cy="300" r="16" fill="#f5f0e4"/>
+  <text x="256" y="430" text-anchor="middle" font-family="system-ui,sans-serif" font-size="96" font-weight="700" fill="#f5f0e4">LVM</text>
+</svg>

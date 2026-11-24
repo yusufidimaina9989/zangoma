@@ -1,0 +1,47 @@
+{
+  "name": "livestock-market-system",
+  "version": "1.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "predev:netlify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/free-ports.ps1",
+    "dev:reset": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/free-ports.ps1",
+    "dev:netlify": "netlify dev --offline",
+    "dev:lan": "netlify dev --offline --host 0.0.0.0",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "db:check": "tsx scripts/check-db.ts",
+    "verify": "npm run db:check && npm run typecheck:functions && npm run build",
+    "typecheck:functions": "tsc -p netlify/tsconfig.json"
+  },
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@supabase/supabase-js": "^2.119.2",
+    "jspdf": "^4.2.1",
+    "qrcode": "^1.5.4",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.0",
+    "@angular/cli": "^21.2.0",
+    "@angular/compiler-cli": "^21.2.0",
+    "@netlify/functions": "^6.1.2",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/qrcode": "^1.5.6",
+    "netlify-cli": "^27.20.1",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.2"
+  }
+}
