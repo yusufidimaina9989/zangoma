@@ -65,7 +65,7 @@ export class TransactionRegisterComponent implements OnInit {
     const draft=localStorage.getItem('livestock-draft');
     if(draft){try{this.form.patchValue(JSON.parse(draft));}catch{localStorage.removeItem('livestock-draft');}}
     this.form.valueChanges.subscribe(value=>localStorage.setItem('livestock-draft',JSON.stringify(value)));
-    const {data}=await this.db.client.from('middlemen').select('id,full_name').eq('is_active',true).order('full_name'); this.middlemen.set(data||[]); setTimeout(()=>this.drawSilhouettes(),100);
+    const {data}=await this.db.client.from('middlemen').select('id,full_name').eq('is_active',true).order('full_name'); this.middlemen.set(data||[]); setTimeout(()=>this.resetCanvas(),100);
   }
   async photo(event:Event,side:'seller'|'buyer'){
     const file=(event.target as HTMLInputElement).files?.[0];
@@ -78,12 +78,12 @@ export class TransactionRegisterComponent implements OnInit {
       else{this.buyerFile=compressed.file;this.buyerPreview.set(compressed.dataUrl);this.buyerName.set(sizeLabel)}
     }catch(e:any){this.error.set(e.message||'Could not process that photograph');}
   }
-  private drawSilhouettes(){this.canvases?.forEach((ref,i)=>{const c=ref.nativeElement;const ctx=c.getContext('2d')!;ctx.fillStyle='#fffaf0';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='#9aa3a0';ctx.lineWidth=12;ctx.beginPath();ctx.moveTo(120,250);ctx.quadraticCurveTo(170,120,300,150);ctx.quadraticCurveTo(430,120,480,250);ctx.stroke();ctx.beginPath();ctx.moveTo(300,150);ctx.lineTo(300,70);ctx.stroke();})}
+  private resetCanvas(){this.canvases?.forEach(ref=>{const c=ref.nativeElement;const ctx=c.getContext('2d')!;ctx.fillStyle='#fffaf0';ctx.fillRect(0,0,c.width,c.height);})}
   start(e:PointerEvent,side:string){this.drawing=true;this.side=side;this.point(e,true)}
   move(e:PointerEvent,side:string){if(this.drawing&&this.side===side)this.point(e,false)}
   stop(){this.drawing=false}
   private point(e:PointerEvent,begin:boolean){const ref=this.canvases.toArray().find((_,i)=>i===({left:0,right:1}[this.side as 'left'|'right']));if(!ref)return;const c=ref.nativeElement,r=c.getBoundingClientRect();const ctx=c.getContext('2d')!;ctx.lineWidth=5;ctx.lineCap='round';ctx.strokeStyle='#d97706';const x=(e.clientX-r.left)*c.width/r.width,y=(e.clientY-r.top)*c.height/r.height;if(begin){ctx.beginPath();ctx.moveTo(x,y)}else{ctx.lineTo(x,y);ctx.stroke()}}
-  clear(side:string){const i=side==='left'?0:1;const c=this.canvases.toArray()[i]?.nativeElement;if(c){const ctx=c.getContext('2d')!;ctx.clearRect(0,0,c.width,c.height);this.drawSilhouettes()}}
+  clear(side:string){const i=side==='left'?0:1;const c=this.canvases.toArray()[i]?.nativeElement;if(c){const ctx=c.getContext('2d')!;ctx.clearRect(0,0,c.width,c.height);this.resetCanvas()}}
   private async upload(file:File,prefix:string){const id=crypto.randomUUID();const path=`transactions/${id}/${prefix}.jpg`;const {error}=await this.db.client.storage.from('livestock-private').upload(path,file,{contentType:'image/jpeg',upsert:false});if(error)throw error;return path}
   async submit(){if(this.busy())return;this.busy.set(true);this.error.set('');try{let sellerPath:any,buyerPath:any; if(this.sellerFile)sellerPath=await this.upload(this.sellerFile,'seller');if(this.buyerFile)buyerPath=await this.upload(this.buyerFile,'buyer');const canvases=this.canvases.toArray();const left=await this.canvasBlob(canvases[0].nativeElement);const right=await this.canvasBlob(canvases[1].nativeElement);const leftPath=await this.upload(new File([left],'left.jpg',{type:'image/jpeg'}),'left');const rightPath=await this.upload(new File([right],'right.jpg',{type:'image/jpeg'}),'right');const payload={...this.form.value,seller_photo_path:sellerPath,buyer_photo_path:buyerPath,left_side_image_path:leftPath,right_side_image_path:rightPath};const result=await this.api.createTransaction(payload);this.saved.set(result.receipt_number);this.toast.success(`Transaction ${result.receipt_number} registered`,'Transaction saved');localStorage.removeItem('livestock-draft')}catch(e:any){this.error.set(e.message||'Transaction could not be saved');this.toast.error(e.message||'Transaction could not be saved','Could not register transaction');}finally{this.busy.set(false)}}
   private canvasBlob(c:HTMLCanvasElement){return new Promise<Blob>(r=>c.toBlob(x=>r(x!),'image/jpeg',.7))}

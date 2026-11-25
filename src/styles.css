@@ -118,6 +118,12 @@ body{overscroll-behavior-y:contain}
 .receipt-box h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--green)}
 .receipt-box p{margin:0 0 6px}
 .receipt-photo{width:92px;height:92px;object-fit:cover;border-radius:6px;border:1px solid var(--border);float:right;margin:0 0 8px 10px}
+.receipt-box.person{display:flex;align-items:flex-start;gap:14px}
+.person-photo{flex:0 0 auto;width:112px;height:112px;border-radius:12px;overflow:hidden;border:3px solid #e8efe9;background:#f2f6f3;display:grid;place-items:center;box-shadow:0 3px 10px rgba(20,40,30,.10)}
+.person-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.person-initials{font-size:30px;font-weight:800;color:#b9c8bf;letter-spacing:.02em}
+.person-details{flex:1;min-width:0}
+@media(max-width:480px){.person-photo{width:84px;height:84px;border-radius:10px}.person-initials{font-size:24px}}
 .marking-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 .marking-grid figure{margin:0}.marking-grid figcaption{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#6b756f;margin-bottom:4px}
 .marking-grid img{width:100%;border:1px solid var(--border);border-radius:6px;background:#fffaf0}

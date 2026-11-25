@@ -13,7 +13,7 @@ import { jsPDF } from 'jspdf';
   <div><p class="eyebrow">Dispute resolution</p><h1>Search Records</h1></div>
   <div class="tool-row">
     <span class="muted">{{ count() }} result(s)</span>
-    <button class="btn-secondary" [disabled]="exporting()" (click)="exportCsv()">@if (exporting()) { <span class="spinner spinner-dark"></span> }Export Excel</button>
+    <button class="btn-secondary" [disabled]="exporting()" (click)="exportExcel()">@if (exporting()) { <span class="spinner spinner-dark"></span> }Export Excel</button>
     <button class="btn-secondary" [disabled]="exporting()" (click)="exportPdf()">Export PDF</button>
   </div>
 </div>
@@ -241,27 +241,74 @@ export class SearchComponent {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  async exportCsv() {
+  /** Pulls every page matching the current filters (not just the visible page). */
+  private async fetchAllPages(): Promise<any[]> {
+    const all: any[] = [];
+    let page = 1;
+    let pages = 1;
+    do {
+      const result = await this.api.search(this.buildParams(page, 500));
+      all.push(...(result.data || []));
+      pages = result.pages || 1;
+      page += 1;
+    } while (page <= pages && page <= 400);
+    return all;
+  }
+
+  async exportExcel() {
     if (this.exporting()) return;
     this.exporting.set(true);
     try {
-      const result = await this.api.search(this.buildParams(1, 5000));
-      const rows: any[] = result.data || [];
+      const rows = await this.fetchAllPages();
       if (!rows.length) { this.toast.warning('Nothing to export for these filters.'); return; }
 
-      const header = ['Receipt', 'Animal', 'Sex', 'Colour', 'Seller', 'Seller phone', 'Buyer', 'Buyer phone', 'Middleman', 'Collector', 'Date', 'Time', 'Status', 'Registered'];
-      const body = rows.map(row => [
-        row.receipt_number, row.animal_type, row.animal_sex, row.animal_colour ?? '',
-        row.seller_name, row.seller_phone ?? '', row.buyer_name, row.buyer_phone ?? '',
-        row.middlemen?.full_name ?? '', row.collector?.full_name ?? '',
-        row.transaction_date, row.transaction_time, row.status, row.created_at,
-      ]);
-      const csv = '\uFEFF' + [header, ...body]
-        .map(line => line.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
-        .join('\r\n');
+      // Loaded on demand so the spreadsheet library never bloats the app shell.
+      const XLSX = await import('xlsx');
+      const sheetRows = rows.map(row => ({
+        'Receipt No': row.receipt_number,
+        'Animal': row.animal_type,
+        'Sex': row.animal_sex,
+        'Colour': row.animal_colour ?? '',
+        'Age': row.animal_age ?? '',
+        'Description': row.animal_description ?? '',
+        'Seller': row.seller_name,
+        'Seller Phone': row.seller_phone ?? '',
+        'Seller Address': row.seller_address ?? '',
+        'Seller Village': row.seller_village ?? '',
+        'Buyer': row.buyer_name,
+        'Buyer Phone': row.buyer_phone ?? '',
+        'Buyer Address': row.buyer_address ?? '',
+        'Buyer Village': row.buyer_village ?? '',
+        'Middleman': row.middlemen?.full_name ?? '',
+        'Collector': row.collector?.full_name ?? '',
+        'Date': row.transaction_date,
+        'Time': row.transaction_time,
+        'Status': row.status,
+        'Void Reason': row.void_reason ?? '',
+        'Registered At': row.created_at ?? '',
+      }));
 
-      this.download(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `transactions-${this.stamp()}.csv`);
-      this.toast.success(`${rows.length} transaction(s) exported to Excel`, 'Export ready');
+      const worksheet = XLSX.utils.json_to_sheet(sheetRows);
+      worksheet['!cols'] = [
+        { wch: 12 }, { wch: 10 }, { wch: 7 }, { wch: 12 }, { wch: 8 }, { wch: 34 },
+        { wch: 22 }, { wch: 15 }, { wch: 28 }, { wch: 16 },
+        { wch: 22 }, { wch: 15 }, { wch: 28 }, { wch: 16 },
+        { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
+        { wch: 28 }, { wch: 24 },
+      ];
+      worksheet['!autofilter'] = {
+        ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: sheetRows.length, c: 20 } }),
+      };
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
+      const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+      this.download(
+        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        `transactions-backup-${this.stamp()}.xlsx`,
+      );
+      this.toast.success(`${rows.length} transaction(s) exported into one Excel file`, 'Backup ready');
     } catch (e: any) {
       this.toast.error(e.message || 'Export failed', 'Export failed');
     } finally {

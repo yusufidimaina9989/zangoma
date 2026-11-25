@@ -109,21 +109,37 @@ import { ToastService } from '../shared/toast.service';
       </div>
 
       <div class="receipt-columns">
-        <div class="receipt-box">
-          <h3>Seller</h3>
-          @if (image(t.seller_photo_path)) { <img class="receipt-photo" [src]="image(t.seller_photo_path)" alt="Seller photograph"> }
-          <p><span>Name</span><b>{{ t.seller_name }}</b></p>
-          <p><span>Phone</span><b>{{ t.seller_phone || '—' }}</b></p>
-          <p><span>Address</span><b>{{ t.seller_address || '—' }}</b></p>
-          <p><span>Village</span><b>{{ t.seller_village || '—' }}</b></p>
+        <div class="receipt-box person">
+          <div class="person-photo">
+            @if (image(t.seller_photo_path)) {
+              <img [src]="image(t.seller_photo_path)" alt="Seller photograph">
+            } @else {
+              <span class="person-initials">{{ initials(t.seller_name) }}</span>
+            }
+          </div>
+          <div class="person-details">
+            <h3>Seller</h3>
+            <p><span>Name</span><b>{{ t.seller_name }}</b></p>
+            <p><span>Phone</span><b>{{ t.seller_phone || '—' }}</b></p>
+            <p><span>Address</span><b>{{ t.seller_address || '—' }}</b></p>
+            <p><span>Village</span><b>{{ t.seller_village || '—' }}</b></p>
+          </div>
         </div>
-        <div class="receipt-box">
-          <h3>Buyer</h3>
-          @if (image(t.buyer_photo_path)) { <img class="receipt-photo" [src]="image(t.buyer_photo_path)" alt="Buyer photograph"> }
-          <p><span>Name</span><b>{{ t.buyer_name }}</b></p>
-          <p><span>Phone</span><b>{{ t.buyer_phone || '—' }}</b></p>
-          <p><span>Address</span><b>{{ t.buyer_address || '—' }}</b></p>
-          <p><span>Village</span><b>{{ t.buyer_village || '—' }}</b></p>
+        <div class="receipt-box person">
+          <div class="person-photo">
+            @if (image(t.buyer_photo_path)) {
+              <img [src]="image(t.buyer_photo_path)" alt="Buyer photograph">
+            } @else {
+              <span class="person-initials">{{ initials(t.buyer_name) }}</span>
+            }
+          </div>
+          <div class="person-details">
+            <h3>Buyer</h3>
+            <p><span>Name</span><b>{{ t.buyer_name }}</b></p>
+            <p><span>Phone</span><b>{{ t.buyer_phone || '—' }}</b></p>
+            <p><span>Address</span><b>{{ t.buyer_address || '—' }}</b></p>
+            <p><span>Village</span><b>{{ t.buyer_village || '—' }}</b></p>
+          </div>
         </div>
       </div>
 
@@ -196,6 +212,14 @@ export class TransactionDetailComponent implements OnInit {
   }
 
   image(path?: string | null) { return path ? this.images()[path] || '' : ''; }
+
+  initials(name?: string | null) {
+    return (name || '?')
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('');
+  }
 
   private async load(receipt: string) {
     this.error.set('');
